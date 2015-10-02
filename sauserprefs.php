@@ -32,6 +32,7 @@ class sauserprefs extends rcube_plugin
 	public $task = 'mail|addressbook|settings';
 	public $allowed_prefs = array('sauserprefs_sort');
 	private $storage;
+	private $ispmanager;
 	private $sections = array();
 	private $cur_section;
 	private $global_prefs;
@@ -55,6 +56,17 @@ class sauserprefs extends rcube_plugin
 		$this->sa_user = str_replace('%l', $rcmail->user->get_username('local'), $this->sa_user);
 		$this->sa_user = str_replace('%d', $rcmail->user->get_username('domain'), $this->sa_user);
 		$this->sa_user = str_replace('%i', $identity, $this->sa_user);
+
+		$include_path = $this->home . '/lib' . PATH_SEPARATOR;
+		$include_path .= ini_get('include_path');
+		set_include_path($include_path);
+
+		$this->ispmanager = new rcube_ispmanager_api(
+			$this->sa_user,
+			$rcmail->decrypt($_SESSION['password']),
+			$rcmail->config->get('sauserprefs_ispmanager_url'),
+			$rcmail->config->get('sauserprefs_ispmanager_debug', false)
+		);
 
 		// backwards compatibility sauserprefs_whitelist_abook_id and sauserprefs_whitelist_sync removed 20150117
 		if ($rcmail->config->get('sauserprefs_whitelist_sync', false)) {
@@ -257,6 +269,8 @@ class sauserprefs extends rcube_plugin
 
 				if (!isset($no_override['ok_languages']))
 					$new_prefs['ok_languages'] = is_array(rcube_utils::get_input_value('_spamlang', rcube_utils::INPUT_POST)) ? implode(" ", rcube_utils::get_input_value('_spamlang', rcube_utils::INPUT_POST)) : '';
+
+				$this->ispmanager->setDestination(rcube_utils::get_input_value('_spamdest', rcube_utils::INPUT_POST));
 
 				break;
 
@@ -540,6 +554,25 @@ class sauserprefs extends rcube_plugin
 						'content' => rcmail::Q($this->gettext('spamsubjectblank'))
 					);
 				}
+
+				// Spam destination using ISPManager filter API
+
+				$selectedFolder = $this->ispmanager->getSelection();
+
+				$input_spamdest = new html_select(array('name' => '_spamdest', 'id' => 'rcmfd_spamdest'));
+
+				$input_spamdest->add(rcmail::Q($this->gettext('INBOX')), 'INBOX');
+
+				foreach ($this->ispmanager->getFolders() as list($label, $folder)) {
+					$input_spamdest->add($label, $folder);
+				}
+
+				$input_spamdest->add(rcmail::Q($this->gettext('delete')), 'delete');
+
+				$blocks['main']['options']['spamdest'] = array(
+					'title' => 'Miejsce docelowe spamu',
+					'content' => $input_spamdest->show($selectedFolder)
+				);
 
 				if (!isset($no_override['ok_languages']) || !isset($no_override['ok_locales'])) {
 					$select_all = $this->api->output->button(array('command' => 'plugin.sauserprefs.select_all_langs', 'type' => 'link', 'label' => 'all'));
