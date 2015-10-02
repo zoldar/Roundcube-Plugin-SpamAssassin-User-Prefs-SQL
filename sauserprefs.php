@@ -563,7 +563,8 @@ class sauserprefs extends rcube_plugin
 
 				$input_spamdest->add(rcmail::Q($this->gettext('INBOX')), 'INBOX');
 
-				foreach ($this->ispmanager->getFolders() as list($label, $folder)) {
+				foreach ($this->ispmanager->getFolders() as $entry) {
+					list($label, $folder) = $entry;
 					$input_spamdest->add($label, $folder);
 				}
 
