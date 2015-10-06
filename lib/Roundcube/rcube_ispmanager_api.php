@@ -240,7 +240,7 @@ class rcube_ispmanager_api
 
     private function filterExists($response)
     {
-        $filters = $response['doc']['elem'];
+        $filters = (array) $response['doc']['elem'];
 
         foreach ($filters as $filter) {
             if ($filter['name']['$'] == $this->FILTER_NAME) {
