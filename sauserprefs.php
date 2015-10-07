@@ -65,7 +65,7 @@ class sauserprefs extends rcube_plugin
 			$this->sa_user,
 			$rcmail->decrypt($_SESSION['password']),
 			$rcmail->config->get('sauserprefs_ispmanager_url'),
-			$rcmail->config->get('sauserprefs_ispmanager_debug', false)
+			$rcmail->config->get('sauserprefs_ispmanager_debug', null ,false)
 		);
 
 		// backwards compatibility sauserprefs_whitelist_abook_id and sauserprefs_whitelist_sync removed 20150117

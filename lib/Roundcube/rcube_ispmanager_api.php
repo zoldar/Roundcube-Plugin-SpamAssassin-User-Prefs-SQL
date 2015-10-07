@@ -2,18 +2,20 @@
 
 class rcube_ispmanager_api
 {
-    private $FILTER_NAME = 'spamassassin';
+    private $FILTER_PREFIX = 'spam____';
 
     private $username;
     private $password;
     private $baseUrl;
     private $debug;
+    private $filterName;
 
-    function __construct($username, $password, $baseUrl, $debug = false)
+    function __construct($username, $password, $baseUrl, $salt = "NotASecret", $debug = false)
     {
         $this->username = $username;
         $this->password = $password;
         $this->baseUrl = $baseUrl;
+        $this->filterName = $this->generateName($salt, $username);
         $this->debug = $debug;
         $this->initFilterIfAbsent();
     }
@@ -51,7 +53,7 @@ class rcube_ispmanager_api
         $result = $this->query(array(
             'func' => 'email.sorter.action',
             'plid' => '_USER',
-            'elid' => $this->FILTER_NAME
+            'elid' => $this->filterName
         ));
 
         if ($this->isOk($result)) {
@@ -59,7 +61,7 @@ class rcube_ispmanager_api
 
             $result = $this->query(array(
                 'func' => 'email.sorter.action.edit',
-                'plid' => '_USER/'.$this->FILTER_NAME,
+                'plid' => '_USER/'.$this->filterName,
                 'elid' => $actionId
             ));
         }
@@ -91,6 +93,11 @@ class rcube_ispmanager_api
         }
     }
 
+    private function generateName($salt, $username) {
+        $hash = sha1("$salt:$username");
+        return $this->FILTER_PREFIX.substr($hash, 0, 8);
+    }
+
     private function setKeepAction()
     {
         $this->clearActions();
@@ -98,7 +105,7 @@ class rcube_ispmanager_api
         $result = $this->query(array(
             'func' => 'email.sorter.action.edit',
             'sok' => 'ok',
-            'plid' => '_USER/' . $this->FILTER_NAME,
+            'plid' => '_USER/' . $this->filterName,
             'elid' => '',
             'action' => 'keep',
             'folder' => '',
@@ -116,7 +123,7 @@ class rcube_ispmanager_api
         $result = $this->query(array(
             'func' => 'email.sorter.action.edit',
             'sok' => 'ok',
-            'plid' => '_USER/' . $this->FILTER_NAME,
+            'plid' => '_USER/' . $this->filterName,
             'elid' => '',
             'action' => 'discard',
             'folder' => '',
@@ -134,7 +141,7 @@ class rcube_ispmanager_api
         $result = $this->query(array(
             'func' => 'email.sorter.action.edit',
             'sok' => 'ok',
-            'plid' => '_USER/' . $this->FILTER_NAME,
+            'plid' => '_USER/' . $this->filterName,
             'elid' => '',
             'action' => 'fileinto',
             'folder' => $folder,
@@ -153,7 +160,7 @@ class rcube_ispmanager_api
             $this->query(array(
                 'func' => 'email.sorter.action.delete',
                 'sok' => 'ok',
-                'plid' => '_USER/' . $this->FILTER_NAME,
+                'plid' => '_USER/' . $this->filterName,
                 'elid' => $actionId
             ));
         }
@@ -166,7 +173,7 @@ class rcube_ispmanager_api
         $result = $this->query(array(
             'func' => 'email.sorter.action',
             'plid' => '_USER',
-            'elid' => $this->FILTER_NAME
+            'elid' => $this->filterName
         ));
 
         if ($this->isOk($result)) {
@@ -197,7 +204,7 @@ class rcube_ispmanager_api
             'sok' => 'ok',
             'plid' => '_USER',
             'elid' => '',
-            'name' => $this->FILTER_NAME,
+            'name' => $this->filterName,
             'condcomp' => 'allof',
             'pos' => 'pos_last',
             'snext' => 'ok'
@@ -207,7 +214,7 @@ class rcube_ispmanager_api
             $result = $this->query(array(
                 'func' => 'email.sorter.cond.edit',
                 'sok' => 'ok',
-                'plid' => '_USER/' . $this->FILTER_NAME,
+                'plid' => '_USER/' . $this->filterName,
                 'elid' => '',
                 'what' => 'header',
                 'params' => 'X-Spam_status',
@@ -221,7 +228,7 @@ class rcube_ispmanager_api
             $result = $this->query(array(
                 'func' => 'email.sorter.action.edit',
                 'sok' => 'ok',
-                'plid' => '_USER/' . $this->FILTER_NAME,
+                'plid' => '_USER/' . $this->filterName,
                 'elid' => '',
                 'action' => 'keep',
                 'folder' => '',
@@ -243,7 +250,7 @@ class rcube_ispmanager_api
         $filters = (array) $response['doc']['elem'];
 
         foreach ($filters as $filter) {
-            if ($filter['name']['$'] == $this->FILTER_NAME) {
+            if ($filter['name']['$'] == $this->filterName) {
                 return true;
             }
         }
