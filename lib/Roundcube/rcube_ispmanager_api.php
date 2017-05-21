@@ -168,12 +168,15 @@ class rcube_ispmanager_api
 
     private function listActionIds()
     {
+        $filter = $this->findFilter($this->listFilters());
+        $filterId =  $filter['id']['$'];
+
         $ids = array();
 
         $result = $this->query(array(
             'func' => 'email.sorter.action',
             'plid' => '_USER',
-            'elid' => $this->filterName
+            'elid' => $filterId
         ));
 
         if ($this->isOk($result)) {
@@ -185,14 +188,19 @@ class rcube_ispmanager_api
         return $ids;
     }
 
-    private function initFilterIfAbsent()
+    private function listFilters()
     {
-        $result = $this->query(array(
+        return $this->query(array(
             'elid' => '_USER',
             'func' => 'email.sorter'
         ));
+    }
 
-        if (!$this->filterExists($result)) {
+    private function initFilterIfAbsent()
+    {
+        $result = $this->listFilters();
+
+        if ($this->findFilter($result) === false) {
             $this->createFilter();
         }
     }
@@ -200,14 +208,13 @@ class rcube_ispmanager_api
     private function createFilter()
     {
         $result = $this->query(array(
-            'func' => 'email.sorter.add',
+            'func' => 'email.sorter.action.add',
             'sok' => 'ok',
             'plid' => '_USER',
             'elid' => '',
             'name' => $this->filterName,
             'condcomp' => 'allof',
-            'pos' => 'pos_last',
-            'snext' => 'ok'
+            'pos' => 'pos_last'
         ));
 
         if ($this->isOk($result)) {
@@ -245,13 +252,13 @@ class rcube_ispmanager_api
         return !isset($response['doc']['error']);
     }
 
-    private function filterExists($response)
+    private function findFilter($response)
     {
         $filters = (array) $response['doc']['elem'];
 
         foreach ($filters as $filter) {
             if ($filter['name']['$'] == $this->filterName) {
-                return true;
+                return $filter;
             }
         }
 
