@@ -48,12 +48,15 @@ class rcube_ispmanager_api
     }
 
     function getSelection() {
+        $filter = $this->findFilter($this->listFilters());
+        $filterId = $filter['id']['$'];
+
         $selection = null;
 
         $result = $this->query(array(
             'func' => 'email.sorter.action',
             'plid' => '_USER',
-            'elid' => $this->filterName
+            'elid' => $filterId
         ));
 
         if ($this->isOk($result)) {
