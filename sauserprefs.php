@@ -519,7 +519,7 @@ class sauserprefs extends rcube_plugin
 						$decPlaces = strlen($rcmail->config->get('sauserprefs_score_inc') - (int)$rcmail->config->get('sauserprefs_score_inc')) - 2;
 
 					$score_found = false;
-					for ($i = 1; $i <= 10; $i = $i + $rcmail->config->get('sauserprefs_score_inc')) {
+					for ($i = 1; $i <= 100; $i = $i + $rcmail->config->get('sauserprefs_score_inc')) {
 						$input_spamthres->add(number_format($i, $decPlaces, $locale_info['decimal_point'], ''), number_format($i, $decPlaces, '.', ''));
 
 						if (!$score_found && $this->user_prefs['required_score'] && (float)$this->user_prefs['required_score'] == (float)$i)
