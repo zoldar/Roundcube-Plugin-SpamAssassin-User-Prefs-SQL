@@ -227,7 +227,7 @@ class rcube_ispmanager_api
                 'plid' => '_USER/' . $this->filterName,
                 'elid' => '',
                 'what' => 'header',
-                'params' => 'X-Spam_status',
+                'params' => 'X-Spam-Status',
                 'ifnot' => 'off',
                 'mod' => 'contains',
                 'values' => 'Yes'
