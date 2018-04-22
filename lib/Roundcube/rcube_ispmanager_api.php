@@ -229,8 +229,8 @@ class rcube_ispmanager_api
                 'what' => 'header',
                 'params' => 'X-Spam-Status',
                 'ifnot' => 'off',
-                'mod' => 'contains',
-                'values' => 'Yes'
+                'mod' => 'regex',
+                'values' => '^Yes,'
             ));
         }
 
